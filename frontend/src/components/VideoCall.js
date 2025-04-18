@@ -50,7 +50,8 @@ const VideoCall = () => {
         localVideoRef.current.srcObject = stream;
 
         // Initialize socket connection
-        socketRef.current = io('http://localhost:5000');
+        socketRef.current = io('https://video-call-6r64.onrender.com'); // Deployed server
+
         
         const username = `User-${Math.random().toString(36).substr(2, 9)}`;
         socketRef.current.emit('join', {

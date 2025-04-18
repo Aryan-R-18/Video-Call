@@ -5,12 +5,18 @@ const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: "https://6802286c44898375982c26cb--arnrcall.netlify.app",
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://6802286c44898375982c26cb--arnrcall.netlify.app",
     methods: ["GET", "POST"]
   }
 });
@@ -22,32 +28,28 @@ const rooms = new Map();
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  // Handle user joining
   socket.on('join', ({ username, roomId }) => {
     const user = {
       id: socket.id,
       username,
       roomId: roomId || null
     };
-    
+
     users.set(socket.id, user);
-    
+
     if (roomId) {
       socket.join(roomId);
       if (!rooms.has(roomId)) {
         rooms.set(roomId, new Set());
       }
       rooms.get(roomId).add(socket.id);
-      
-      // Notify room members about new user
+
       socket.to(roomId).emit('user-joined', { user });
     }
-    
-    // Send list of connected users
+
     io.emit('users-list', Array.from(users.values()));
   });
 
-  // Handle video call signaling
   socket.on('offer', ({ to, offer }) => {
     socket.to(to).emit('offer', { from: socket.id, offer });
   });
@@ -60,7 +62,6 @@ io.on('connection', (socket) => {
     socket.to(to).emit('ice-candidate', { from: socket.id, candidate });
   });
 
-  // Handle chat messages
   socket.on('chat-message', ({ to, message }) => {
     const user = users.get(socket.id);
     const messageData = {
@@ -69,7 +70,7 @@ io.on('connection', (socket) => {
       message,
       timestamp: new Date()
     };
-    
+
     if (to === 'all') {
       io.emit('chat-message', messageData);
     } else {
@@ -77,7 +78,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle disconnection
   socket.on('disconnect', () => {
     const user = users.get(socket.id);
     if (user) {
@@ -102,4 +102,4 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-}); 
+});
