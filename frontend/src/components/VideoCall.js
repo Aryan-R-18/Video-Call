@@ -47,8 +47,9 @@ const VideoCall = () => {
           audio: true,
         });
         setLocalStream(stream);
-        localVideoRef.current.srcObject = stream;
-
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
         // Initialize socket connection
         socketRef.current = io('https://video-call-6r64.onrender.com'); // Deployed server
 
