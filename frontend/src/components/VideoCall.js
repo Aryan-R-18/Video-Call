@@ -52,7 +52,6 @@ const VideoCall = () => {
         // Initialize socket connection
         socketRef.current = io('https://video-call-6r64.onrender.com'); // Deployed server
 
-        
         const username = `User-${Math.random().toString(36).substr(2, 9)}`;
         socketRef.current.emit('join', {
           username,
@@ -88,7 +87,7 @@ const VideoCall = () => {
           if (localStream) {
             await createPeerConnection(user.id);
           }
-          setParticipants(prev => [...prev, user]);
+          setParticipants((prev) => [...prev, user]);
         });
 
         socketRef.current.on('user-left', ({ userId }) => {
@@ -96,17 +95,17 @@ const VideoCall = () => {
           if (peerConnection) {
             peerConnection.close();
             peerConnections.current.delete(userId);
-            setRemoteStreams(prev => {
+            setRemoteStreams((prev) => {
               const newStreams = new Map(prev);
               newStreams.delete(userId);
               return newStreams;
             });
           }
-          setParticipants(prev => prev.filter(p => p.id !== userId));
+          setParticipants((prev) => prev.filter((p) => p.id !== userId));
         });
 
         socketRef.current.on('users-list', (usersList) => {
-          setParticipants(usersList.filter(user => user.id !== socketRef.current?.id));
+          setParticipants(usersList.filter((user) => user.id !== socketRef.current?.id));
         });
 
         setIsLoading(false);
@@ -120,12 +119,12 @@ const VideoCall = () => {
 
     return () => {
       if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
+        localStream.getTracks().forEach((track) => track.stop());
       }
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
-      peerConnections.current.forEach(pc => pc.close());
+      peerConnections.current.forEach((pc) => pc.close());
     };
   }, [roomId]);
 
@@ -142,13 +141,13 @@ const VideoCall = () => {
     });
 
     // Add local stream to peer connection
-    localStream.getTracks().forEach(track => {
+    localStream.getTracks().forEach((track) => {
       peerConnection.addTrack(track, localStream);
     });
 
     // Handle remote stream
     peerConnection.ontrack = (event) => {
-      setRemoteStreams(prev => {
+      setRemoteStreams((prev) => {
         const newStreams = new Map(prev);
         newStreams.set(userId, event.streams[0]);
         return newStreams;
@@ -176,7 +175,7 @@ const VideoCall = () => {
 
   const toggleMute = () => {
     if (localStream) {
-      localStream.getAudioTracks().forEach(track => {
+      localStream.getAudioTracks().forEach((track) => {
         track.enabled = !track.enabled;
       });
       setIsMuted(!isMuted);
@@ -185,7 +184,7 @@ const VideoCall = () => {
 
   const toggleVideo = () => {
     if (localStream) {
-      localStream.getVideoTracks().forEach(track => {
+      localStream.getVideoTracks().forEach((track) => {
         track.enabled = !track.enabled;
       });
       setIsVideoOff(!isVideoOff);
@@ -194,12 +193,12 @@ const VideoCall = () => {
 
   const endCall = () => {
     if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
+      localStream.getTracks().forEach((track) => track.stop());
     }
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
-    peerConnections.current.forEach(pc => pc.close());
+    peerConnections.current.forEach((pc) => pc.close());
     window.location.href = '/';
   };
 
@@ -241,7 +240,7 @@ const VideoCall = () => {
             </Paper>
           </Grid>
           {Array.from(remoteStreams.entries()).map(([userId, stream]) => {
-            const participant = participants.find(p => p.id === userId);
+            const participant = participants.find((p) => p.id === userId);
             return (
               <Grid item xs={12} md={6} key={userId}>
                 <Paper sx={{ p: 2, height: '400px', position: 'relative' }}>
@@ -334,15 +333,14 @@ const VideoCall = () => {
                 </Badge>
               </ListItemAvatar>
               <ListItemText
-                primary={participant.username}
-                secondary={remoteStreams.has(participant.id) ? 'Connected' : 'Connecting...'}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Paper>
-    </Box>
-  );
-};
+                          primary={participant.username}
+                          secondary={remoteStreams.has(participant.id) ? 'Speaking' : 'No Video'}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Paper>
+              </Box>
+      ); };        
 
-export default VideoCall; 
+export default VideoCall;
